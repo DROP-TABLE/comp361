@@ -6,20 +6,44 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
+import com.xeiam.xchart.BitmapEncoder;
+import com.xeiam.xchart.BitmapEncoder.BitmapFormat;
+import com.xeiam.xchart.Chart;
+import com.xeiam.xchart.QuickChart;
+import com.xeiam.xchart.Series;
+import com.xeiam.xchart.SeriesMarker;
+import com.xeiam.xchart.SwingWrapper;
+import com.xeiam.xchart.VectorGraphicsEncoder;
+import com.xeiam.xchart.VectorGraphicsEncoder.VectorGraphicsFormat;
+
 
 public class ManhattenSkyline {
 
 	private List<Building> city;
-
+	private Chart chart;
+	
+	private final String[] NORMALTESTS = {"NORMAL10", "NORMAL100", "NORMAL1000", "NORMAL10000", "NORMAL100000", "NORMAL1000000", "NORMAL10000000"};
+	private final String[] DISTINCTTESTS = {"DISTINCT10", "DISTINCT100", "DISTINCT1000", "DISTINCT10000", "DISTINCT100000", "DISTINCT1000000", "DISTINCT10000000"};
+	private final String[] NESTEDTESTS = {"NESTED10", "NESTED100", "NESTED1000", "NESTED10000", "NESTED100000", "NESTED1000000", "NESTED10000000"};
+	private final Double[] TESTPATTERN = {10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0};
+	
 	private int barometer = 0;
+	
+	private final boolean MAKE_GRAPHS = true;
 
 	public ManhattenSkyline(){
-		city = load();
+		if(MAKE_GRAPHS){
+			plotGraph();
+		}
+		else{
+			city = load(null);
+		}
 		if(city != null){
 			List<SkylineTuple> skyline = buildSkyline(city, 0, city.size()-1);
 			//display(skyline);
@@ -120,19 +144,21 @@ public class ManhattenSkyline {
 
 
 
-	public List<Building> load(){
-
-		final JFrame frame = new JFrame();
-		final JFileChooser fileChooser = new JFileChooser();
-		File file = null;
-		fileChooser.setCurrentDirectory(new File("."));
-		fileChooser.setDialogTitle("Select input file");
-		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-
-		if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
-			file = fileChooser.getSelectedFile();
+	public List<Building> load(File file){
+		
+		if(file == null){
+			final JFrame frame = new JFrame();
+			final JFileChooser fileChooser = new JFileChooser();
+			file = null;
+			fileChooser.setCurrentDirectory(new File("."));
+			fileChooser.setDialogTitle("Select input file");
+			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+	
+			if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+				file = fileChooser.getSelectedFile();
+			}
+			else {return null; }
 		}
-		else {return null; }
 
 		try{
 			List<Building> city = new ArrayList<>();
@@ -150,6 +176,58 @@ public class ManhattenSkyline {
 			System.out.println("IO exception on file load: " + e);
 			return null;
 		}
+	}
+	
+	public void plotGraph(){
+		
+		chart = new Chart(800, 600);
+	    chart.setChartTitle("Cost of Algorithm");
+	    chart.setXAxisTitle("Size of Input");
+	    chart.setYAxisTitle("Operations Required");
+	    //chart.getStyleManager().setAxisTickMarkLength(1000);
+	    
+	    
+	    runTestsToPlot("Average Case", "NORMAL");
+	    runTestsToPlot("Nested (Best) Case", "NESTED");
+	    runTestsToPlot("Distinct (Worst) Case", "DISTINCT");
+	    
+	    saveGraph();
+	    
+		
+	}
+	
+	private void runTestsToPlot(String name, String test){
+		List<Number> yData = new ArrayList<>();
+		//List<Number> xData = new ArrayList<>(Arrays.asList(TESTPATTERN));
+		List<Number> xData = new ArrayList<>();
+		
+		for(int i=1;i<11;i++){
+			barometer = 0;
+			city = load(new File("tests/" + test + i*1000000 + ".txt"));
+	    	if(city != null){
+	    		buildSkyline(city, 0, city.size()-1);
+	    		yData.add(new Double(barometer));
+	    		xData.add(new Double(i*1000000));
+	    	}
+	    	else{
+	    		System.out.println("Load not successful on " + test + i*1000000);
+	    		//return;
+	    	}
+	    }
+		addSeries(name, xData, yData);
+	}
+	
+	private void addSeries(String name, List<Number> xData, List<Number> yData){
+		Series series = chart.addSeries(name, xData, yData);
+	    series.setMarker(SeriesMarker.CIRCLE);
+	}
+	
+	private void saveGraph(){
+		try{
+			BitmapEncoder.saveBitmap(chart, "./Cost_Plot", BitmapFormat.PNG);
+			chart.getStyleManager().setXAxisLogarithmic(true);
+			BitmapEncoder.saveBitmap(chart, "./Cost_Plot_log", BitmapFormat.PNG);
+		}catch(IOException e){System.out.println("failed to save chart: " + e);}
 	}
 
 	public static void main(String[] args){

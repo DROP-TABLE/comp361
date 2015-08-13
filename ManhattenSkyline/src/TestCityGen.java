@@ -9,6 +9,7 @@ import java.util.List;
 public class TestCityGen {
 
 	/**
+	 * Mode Key:
 	 * NORMAL: Standard random generation using Math.random()
 	 * DISTINCT: Prevents overlapping buildings
 	 * NESTED: Buildings edges do not cross. Each is inside others.
@@ -19,17 +20,24 @@ public class TestCityGen {
 	private final Mode MODE = Mode.NESTED;
 	private final int SIZE = 10000000;
 	private final String FILENAME = MODE.toString() + SIZE;
+	
+	private final boolean GENERATE_ALL = true;
 
 
 	public TestCityGen(){
-		List<Building> city = generate(SIZE, MODE);
-		writeToFile(city, FILENAME);
+		if(GENERATE_ALL){
+			generateTestSet(10000000);
+		}
+		else{
+			List<Building> city = generate(SIZE, MODE);
+			writeToFile(city, FILENAME);
+		}
 	}
 
 
 	private void writeToFile(List<Building> city, String filename){
 		try{
-			File file = new File("tests/" + filename);
+			File file = new File("tests/" + filename + ".txt");
 			if(file.exists()){
 				System.out.println("File already exists");
 				return;
@@ -89,19 +97,20 @@ public class TestCityGen {
 
 
 	private void generateTestSet(int max){
-		int num = 10;
-		while(num < max){
+		int increment = 1000000;
+		int num = 1000000;
+		while(num <= max){
 			build(num, Mode.NORMAL, "NORMAL" + num);
 			build(num, Mode.DISTINCT, "DISTINCT" + num);
 			build(num, Mode.NESTED, "NESTED" + num);
-			num = num*10;
+			num = num + increment;
 		}
 
 	}
 
-	private void build(int size, Mode m, String name){
-		List<Building> city = generate(SIZE, MODE);
-		writeToFile(city, FILENAME);
+	private void build(int num, Mode m, String name){
+		List<Building> city = generate(num, m);
+		writeToFile(city, name);
 	}
 
 
