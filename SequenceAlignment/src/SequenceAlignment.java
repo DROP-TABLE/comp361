@@ -13,34 +13,67 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 
 public class SequenceAlignment {
-	
+
+	private final boolean MAKE_GRAPH = false;
+
+	private final int MAX_SIZE = 10000;
+	private final int INCREMENT = 100;
+
+
 	private List<String> input1;
 	private List<String> input2;
-	
+
+
+
 	public SequenceAlignment(){
 		input1 = new ArrayList<>();
 		input2 = new ArrayList<>();
-		runTest();
-		System.exit(0);
-	}
-	
-	private void runTest(){
-		if(loadFromDialog()){
-			Table table = buildTable();
-			List<Pair> matching = findMatching(table);
-			printMatching(matching);
-			saveMatching(matching);
+		if(!MAKE_GRAPH){
+			if(loadFromDialog()){
+				runSingleTest();
+			}
+			else{
+				System.out.println("Failed to load");
+			}
 		}
 		else{
-			System.out.println("Failed to load");
+			runTestsForGraph();
 		}
+		System.exit(0);
 	}
-	
-	
-	
+
+	private void runSingleTest(){
+		Table table = buildTable();
+		Matching matching = findMatching(table);
+		printMatching(matching);
+		saveMatching(matching);
+	}
+
+	private void runTestsForGraph(){
+		int size = INCREMENT;
+		while(size < MAX_SIZE){
+			File file = new File("tests/NORMAL" + size + ".txt");
+			if(loadFromFile(file)){
+				runSingleTest();
+			}
+			else{
+				System.out.println("failed to load file: NORMAL" + size + ".txt");
+			}
+			file = new File("tests/UNBALANCED" + size + ".txt");
+			if(loadFromFile(file)){
+				runSingleTest();
+			}
+			else{
+				System.out.println("failed to load file: UNBALANCED" + size + ".txt");
+			}
+		}
+
+	}
+
+
+
 	private Table buildTable(){
 		Table table = new Table(input2.size(), input1.size());
-		System.out.println("m=" + input2.size() + " n=" + input1.size());
 		for(int j=0;j<input1.size();j++){
 			for(int i=0;i<input2.size();i++){
 				if(input1.get(j).equals(input2.get(i))){
@@ -53,14 +86,18 @@ public class SequenceAlignment {
 		}
 		return table;
 	}
-	
-	private List<Pair> findMatching(Table table){
-		List<Pair> matching = new ArrayList<>();
+
+	private Matching findMatching(Table table){
+		List<Pair> matchingList = new ArrayList<>();
+
 		int j = input1.size()-1;
 		int i = input2.size()-1;
+		if(input1.get(j).equals(input2.get(i))){
+			matchingList.add(new Pair(input1.get(j), input2.get(i)));
+		}
 		while(i > 0 && j > 0){
-			if(table.getCell(i-1, j-1) > Math.max(table.getCell(i-1, j), table.getCell(i, j-1))){
-				matching.add(new Pair(input1.get(j-1), input2.get(i-1)));
+			if(table.getCell(i-1, j-1) >= Math.max(table.getCell(i-1, j), table.getCell(i, j-1))){
+				matchingList.add(new Pair(input1.get(j-1), input2.get(i-1)));
 				i--;
 				j--;
 			}
@@ -71,78 +108,14 @@ public class SequenceAlignment {
 				j--;
 			}
 		}
-		Collections.reverse(matching); //needed as matching is otherwise backwards.
-		return matching;
+
+		Collections.reverse(matchingList); //needed as matching is otherwise backwards.
+		return new Matching(matchingList, input1, input2);
 	}
-	
-	private void saveMatching(List<Pair> matching){
-		
-		List<String> first = new ArrayList<>();
-		List<String> second = new ArrayList<>();
-		List<String> comparison = new ArrayList<>();
-		int count = 0;
-		int j = 0;
-		int i = 0;
-		System.out.println("length of matching: " + matching.size());
-		System.out.println("inp2 ele1: " + input2.get(i) + ", matchign 1/2: " + matching.get(count).getSecondElem());
-		while(j < input1.size() && i < input2.size() && count < matching.size()){
-			
-			if(input1.get(j).equals(matching.get(count).getFirstElem()) && input2.get(i).equals(matching.get(count).getSecondElem())){
-				first.add(input1.get(j));
-				second.add(input2.get(i));
-				j++;
-				i++;
-				count++;
-			}
-			else if(input1.get(j).equals(matching.get(count).getFirstElem())){
-				//while(!input2.get(i).equals(matching.get(count).getSecondElem()) && j < input1.size()){
-					first.add(" ");
-					second.add(input2.get(i));
-					i++;
-				//}
-			}
-			else if(input2.get(i).equals(matching.get(count).getSecondElem())){
-				//while(!input1.get(j).equals(matching.get(count).getFirstElem()) && i < input2.size()){
-					first.add(input1.get(j));
-					second.add(" ");
-					j++;
-				//}
-			}
-			else{
-				System.out.println("invalid matching");
-				break;
-			}
-		}
-		
-		while(j < input1.size()){  //add rest of input1 to array
-			first.add(input1.get(j));
-			second.add(" ");
-			j++;
-		}
-		
-		while(i< input2.size()){ //add rest of input2 to array
-			first.add(" ");
-			second.add(input2.get(i));
-			i++;
-		}
-		
-		int total = 0;
-		for(int k=0;k<first.size();k++){
-			if(first.get(k).equals(second.get(k))){
-				comparison.add("+");
-				total = total + 1;
-			}
-			else if(first.get(k).equals(" ") || second.get(k).equals(" ")){
-				comparison.add("*");
-				total = total - 2;
-			}
-			else{
-				comparison.add("-");
-				total = total - 1;
-			}
-		}
-		
-		
+
+
+
+	private void saveMatching(Matching matching){
 		try{
 			File file = new File("output.txt");
 			if(file.exists()){ //removes file if exists to clear.
@@ -150,48 +123,65 @@ public class SequenceAlignment {
 			}
 			file.createNewFile();
 			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-			
-			for(String s : first){
+
+
+
+			for(String s : matching.getProcessedOutput1()){
 				bw.write(s + " ");
 			}
 			bw.newLine();
-			for(String s : second){
+			for(String s : matching.getProcessedOutput2()){
 				bw.write(s + " ");
 			}
 			bw.newLine();
-			for(String s : comparison){
+			for(String s : matching.getProcessedOutputComparison()){
 				bw.write(s + " ");
 			}
-			bw.write("(" + total + ")");
-			
+			bw.write("(" + matching.getTotalValue() + ")");
+
 			bw.close();
 			System.out.println("File Created");
 
 		}catch(IOException e){System.out.println("Failed to write to file " + e);}
 	}
-	
-	private void printMatching(List<Pair> matching){
-		for(Pair p : matching){
-			System.out.println("1: " + p.getFirstElem() + ", 2: " + p.getSecondElem());
+
+	private void printMatching(Matching matching){
+
+		for(String s : matching.getProcessedOutput1()){
+			System.out.print(s + " ");
 		}
+		System.out.println();
+		for(String s : matching.getProcessedOutput2()){
+			System.out.print(s + " ");
+		}
+		System.out.println();;
+		for(String s : matching.getProcessedOutputComparison()){
+			System.out.print(s + " ");
+		}
+		System.out.println("(" + matching.getTotalValue() + ")");
 	}
-	
-	
+
+
 	public boolean loadFromDialog(){
-			
+
 		File file = new File(".");
 		final JFrame frame = new JFrame();
 		final JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setCurrentDirectory(new File("."));
 		fileChooser.setDialogTitle("Select input file");
 		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		
-		
+
+
 		if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
 			file = fileChooser.getSelectedFile();
 		}
 		else {return false; }
-		
+
+		return loadFromFile(file);
+
+	}
+
+	public boolean loadFromFile(File file){
 		try{
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String line;
@@ -217,8 +207,8 @@ public class SequenceAlignment {
 			return false;
 		}
 	}
-	
-	
+
+
 
 	public static void main(String[] args) {
 		new SequenceAlignment();
