@@ -2,15 +2,28 @@
 public class Table {
 
 	private int[][] table;
+	
+	private int barometer;
 
 	public Table(int m, int n){
 		table = new int[m+1][n+1];
 		for(int j=0;j<n+1;j++){
 			table[0][j] = -j*2;
+			barometer++;
 		}
 		for(int i=0;i<m+1;i++){
 			table[i][0] = -i*2;
+			barometer++;
 		}
+	}
+	
+	/**
+	 * Used to track initialization costs of table.
+	 * @return number of loops in initialization.
+	 */
+	
+	public int getBarometer(){
+		return barometer;
 	}
 
 	public boolean setCell(int value, int height, int width){

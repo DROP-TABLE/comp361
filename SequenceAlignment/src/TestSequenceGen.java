@@ -9,8 +9,8 @@ import java.util.Random;
 
 public class TestSequenceGen {
 	
-	private final int SIZE = 100000;
-	private final int INCREMENT = 1000;
+	private final int SIZE = 1000;
+	private final int INCREMENT = 10;
 	
 	private List<String> seq1;
 	private List<String> seq2;
@@ -18,7 +18,6 @@ public class TestSequenceGen {
 	public TestSequenceGen(){
 		generateTestSet(SIZE);
 	}
-
 	
 	private void writeToFile(String filename){
 		try{
@@ -51,8 +50,14 @@ public class TestSequenceGen {
 			generateNormal(num);
 			writeToFile("NORMAL" + num);
 			
-			generateUnbalanced(num);
-			writeToFile("UNBALANCED" + num);
+			generateWorst(num);
+			writeToFile("WORST" + num);
+			
+			generateBest(num);
+			writeToFile("BEST" + num);
+			
+			generateFixed1D(num);
+			writeToFile("FIXED1D" + num);
 			
 			num = num + INCREMENT;
 		}
@@ -68,13 +73,39 @@ public class TestSequenceGen {
 		}
 	}
 	
-	private void generateUnbalanced(int size){
+	private void generateWorst(int size){
 		seq1 = new ArrayList<>();
 		seq2 = new ArrayList<>();
 		for(int i=0;i<size;i++){
 			seq1.add(getBase());
 		}
-		for(int i=0;i<size/2;i++){
+		for(int i=0;i<size;i++){
+			if(i*2 < size){
+				seq2.add(getBase());
+			}
+			else{
+				seq2.add(getBase());
+			}
+		}
+	}
+	
+	private void generateBest(int size){
+		seq1 = new ArrayList<>();
+		seq2 = new ArrayList<>();
+		for(int i=0;i<size;i++){
+			String s = getBase();
+			seq1.add(s);
+			seq2.add(s);
+		}
+	}
+	
+	private void generateFixed1D(int size){
+		seq1 = new ArrayList<>();
+		seq2 = new ArrayList<>();
+		for(int i=0;i<size;i++){
+			seq1.add(getBase());
+		}
+		for(int i=0;i<100;i++){
 			seq2.add(getBase());
 		}
 	}

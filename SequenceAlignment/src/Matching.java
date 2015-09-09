@@ -46,23 +46,20 @@ public class Matching {
 				count++;
 			}
 			else if(input1.get(j).equals(matchingList.get(count).getFirstElem())){
-				//while(!input2.get(i).equals(matching.get(count).getSecondElem()) && j < input1.size()){
 				processedOutput1.add(" ");
 				processedOutput2.add(input2.get(i));
-					i++;
-				//}
+				i++;
 			}
-			else if(input2.get(i).equals(matchingList.get(count).getSecondElem())){
-				//while(!input1.get(j).equals(matching.get(count).getFirstElem()) && i < input2.size()){
+			else// if(input2.get(i).equals(matchingList.get(count).getSecondElem()))
+				{
 				processedOutput1.add(input1.get(j));
 				processedOutput2.add(" ");
-					j++;
-				//}
+				j++;
 			}	
-			else{
-				System.out.println("invalid matching");
-				break;
-			}
+			//else{
+			//	System.out.println("invalid matching");
+			//	break;
+			//}
 		}
 
 		while(j < input1.size()){  //add rest of input1 to array
