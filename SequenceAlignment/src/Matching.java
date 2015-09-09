@@ -58,7 +58,7 @@ public class Matching {
 				processedOutput2.add(" ");
 					j++;
 				//}
-			}
+			}	
 			else{
 				System.out.println("invalid matching");
 				break;
