@@ -6,11 +6,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.xeiam.xchart.BitmapEncoder;
+import com.xeiam.xchart.Chart;
+import com.xeiam.xchart.Series;
+import com.xeiam.xchart.SeriesMarker;
+import com.xeiam.xchart.BitmapEncoder.BitmapFormat;
+
 
 public class GreedySchedule {
 
 	private final int MAX_SIZE = 1000;
 	private final int INCREMENT = 100;
+	
+	private int barometer;
 
 
 	public enum Job {
@@ -18,7 +26,58 @@ public class GreedySchedule {
 	}
 
 	public GreedySchedule(){
-		runTests();
+		plotGraph();
+	}
+	
+	public void plotGraph(){
+		
+		Chart chart = new Chart(800, 600);
+	    chart.setChartTitle("Cost of Algorithm");
+	    chart.setXAxisTitle("Size of Input");
+	    chart.setYAxisTitle("Operations Required");
+	    
+	    
+	    runTestsToPlot("m = 5", 5, chart);
+	    runTestsToPlot("m = 10", 10, chart);
+	    runTestsToPlot("m = 20", 20, chart);
+	    
+	    saveGraph(chart);
+	    
+		
+	}
+	
+	private void addSeries(String name, List<Number> xData, List<Number> yData, Chart chart){
+		Series series = chart.addSeries(name, xData, yData);
+	    series.setMarker(SeriesMarker.CIRCLE);
+	}
+	
+	private void saveGraph(Chart chart){
+		try{
+			BitmapEncoder.saveBitmap(chart, "./Cost_Plot", BitmapFormat.PNG);
+		}catch(IOException e){System.out.println("failed to save chart: " + e);}
+	}
+	
+	private void runTestsToPlot(String name, int m, Chart chart){
+		List<Number> xData = new ArrayList<>();
+		List<Number> yData = new ArrayList<>();
+		int size = INCREMENT;
+		while(size < MAX_SIZE){
+			System.out.println("Running: m = "+ m + size);
+			File file = new File("tests/schd" + size + ".txt");
+			barometer = 0;
+			List<Job> jobs = loadFromFile(file);
+			if(jobs != null){
+				int temp = findSolution(m, jobs);
+				System.out.println(temp);
+				yData.add(new Double(barometer));
+	    		xData.add(new Double(size));
+			}
+			else{
+				System.out.println("failed to load file: schd" + size + ".txt");
+			}
+			size = size + INCREMENT;
+		}
+		addSeries(name, xData, yData, chart);
 	}
 
 	private void runTests(){
@@ -27,6 +86,7 @@ public class GreedySchedule {
 			int temp = findSolution(5, jobs);
 			System.out.println(temp);
 		}
+		
 	}
 
 	private int findSolution(int m, List<Job> jobs){
@@ -34,11 +94,13 @@ public class GreedySchedule {
 		int[] runtime = new int[m];
 		for(int i=0;i<m;i++){
 			schd.add(new ArrayList<>());
+			barometer++;
 		}
 		for(int i=0;i<jobs.size();i++){
 			int min = Integer.MAX_VALUE;
 			int minloc = 0;
 			for(int j=0;j<runtime.length;j++){
+				barometer++;
 				if(runtime[j] < min){
 					min = runtime[j];
 					minloc = j;
@@ -55,6 +117,7 @@ public class GreedySchedule {
 
 		int max = 0;
 		for(int i=0;i<runtime.length;i++){
+			barometer++;
 			if(max < runtime[i]){
 				max = runtime[i];
 			}

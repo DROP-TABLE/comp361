@@ -38,6 +38,14 @@ public class Table {
 	public double getCell(int height, int width){
 		return table[height+1][width+1];
 	}
+	
+	public int getHeight(){
+		return table.length-1;
+	}
+	
+	public int getWidth(){
+		return table[0].length-1;
+	}
 
 	public void printTable(){
 		for(int i=0;i<table.length;i++){

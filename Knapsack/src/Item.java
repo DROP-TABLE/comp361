@@ -2,19 +2,24 @@
 public class Item{
 
 	public final String name;
-	public final double value;
+	public final int value;
 	public final int weight;
+	public final int ID;
+	
+	private static int IDcount = 0;
 
-	public Item(String name, double value, int weight) {
+	public Item(String name, int value, int weight) {
 		super();
 		this.name = name;
 		this.value = value;
 		this.weight = weight;
+		this.ID = IDcount;
+		IDcount++;
 	}
 
 	public boolean equals(Object o){
 		Item it = (Item)o;
-		if(it.name.equals(name) && it.value == value && it.weight == weight){
+		if(it.name.equals(name) && it.value == value && it.weight == weight && it.ID == ID){
 			return true;
 		}
 		return false;

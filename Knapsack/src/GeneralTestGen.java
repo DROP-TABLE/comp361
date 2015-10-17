@@ -17,35 +17,63 @@ public class GeneralTestGen {
 
 	private int itemnumber = 0;
 
-	private final int SIZE = 1000;
-	private final int INCREMENT = 100;
+	private final int SIZE = 10;
+	private final int INCREMENT = 1;
 
 	public GeneralTestGen(){
 		runAllTests();
 	}
 
 	private void runAllTests(){
-		for(int i=INCREMENT;i<SIZE;i+=INCREMENT){
+		for(int i=INCREMENT;i<=SIZE;i+=INCREMENT){
 			generateTests(i);
+			itemnumber = 0;
+			generateSimpleTests(i);
+			itemnumber = 0;
+		}
+		
+		for(int i=100;i<=1000;i+=100){
+			generateTests(i);
+			itemnumber = 0;
+			generateSimpleTests(i);
 			itemnumber = 0;
 		}
 	}
 
 	private void generateTests(int size){
 		List<String> items = new ArrayList<>();
-		List<Double> values = new ArrayList<>();
-		List<Double> weights = new ArrayList<>();
+		List<Integer> values = new ArrayList<>();
+		List<Integer> weights = new ArrayList<>();
+		List<Integer> amount = new ArrayList<>();
+		int itemcount = 0;
+		Random rand = new Random();
+
+		while(itemcount<size){
+			items.add(getItemName());
+			values.add(rand.nextInt(100) + 1);
+			weights.add(rand.nextInt(10) + 1);
+			int temp = rand.nextInt(10) + 1;
+			amount.add(temp);
+			itemcount += temp;
+		}
+
+		writeToFile("SIMPLE" + size, items, values, weights, amount);
+	}
+	
+	private void generateSimpleTests(int size){
+		List<String> items = new ArrayList<>();
+		List<Integer> values = new ArrayList<>();
+		List<Integer> weights = new ArrayList<>();
 		List<Integer> amount = new ArrayList<>();
 		Random rand = new Random();
 
 		for(int i=0;i<size;i++){
 			items.add(getItemName());
-			values.add(rand.nextDouble());
-			weights.add(rand.nextDouble());
-			amount.add(rand.nextInt(10) + 1);
+			values.add(rand.nextInt(100) + 1);
+			weights.add(rand.nextInt(10) + 1);
+			amount.add(1);
 		}
-
-		writeToFile("Single" + size, items, values, weights, amount);
+		writeToFile("FULL" + size, items, values, weights, amount);
 	}
 
 	private String getItemName(){
@@ -53,7 +81,7 @@ public class GeneralTestGen {
 		return "Item" + itemnumber;
 	}
 
-	private void writeToFile(String filename, List<String> items, List<Double> values, List<Double> weights, List<Integer> amount){
+	private void writeToFile(String filename, List<String> items, List<Integer> values, List<Integer> weights, List<Integer> amount){
 		try{
 			File file = new File("tests/" + filename + ".txt");
 			if(file.exists()){
